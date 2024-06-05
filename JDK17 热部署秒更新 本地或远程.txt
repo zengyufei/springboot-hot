@@ -1,0 +1,82 @@
+JDK17 热部署秒更新 本地或远程
+
+
+1、更换jdk
+
+	idea 2023.1 以上使用idea自带的 jbr（jdk的变种），在idea安装目录下。
+	
+	也可以下载
+
+	1.1 下载jbr
+		访问 https://github.com/JetBrains/JetBrainsRuntime
+		根据以下 idea 版本选择
+		2024.1	17.0.11-b1207.24	16-May-2024
+		2023.3	17.0.10-b1087.23	20-Mar-2024
+		2023.2	17.0.10-b1000.50	20-Mar-2024
+		2023.1	17.0.10-b829.27	21-Mar-2024
+		2022.3	17.0.6-b653.34	28-Feb-2023
+		2022.2	17.0.6-b469.82	06-Mar-2023
+		
+		例如 2023.2 下载 windows-x64	JBR (vanilla)	jbr-17.0.10-windows-x64-b1000.50.tar.gz
+		
+2、下载hotswap-agent
+
+	https://github.com/HotswapProjects/HotswapAgent
+	
+	去 Releases 下载最新 hotswap-agent-1.4.2-SNAPSHOT.jar 即可 
+	
+	2.1 下载完成改名 hotswap-agent.jar
+	2.2 在 jbr 的 lib 目录下创建 /hotswap/ 目录
+	2.3 将 hotswap-agent.jar 拷贝到 lib/hotswap
+	
+	
+3、下载Server端
+	
+	https://github.com/Liubsyy/HotSecondsIDEA/blob/master/install/download_server.md
+	
+	下载压缩包 HotSecondsServer7.0.zip
+	
+	解压到java项目根目录，并改名 HotSecondsServer
+	
+	看一眼 hot-seconds-remote.xml 文件
+	
+4、启动时增加VM参数
+
+	-XX:+AllowEnhancedClassRedefinition -javaagent:$path1/HotSecondsServer.jar=hotconf=$path2/hot-seconds-remote.xml --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/jdk.internal.loader=ALL-UNNAMED --add-opens java.base/java.io=ALL-UNNAMED --add-opens java.desktop/java.beans=ALL-UNNAMED --add-opens java.desktop/com.sun.beans=ALL-UNNAMED --add-opens java.desktop/com.sun.beans.introspect=ALL-UNNAMED --add-opens java.desktop/com.sun.beans.util=ALL-UNNAMED --add-opens java.base/sun.security.action=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/java.net=ALL-UNNAMED
+	
+	
+	修改VM参数里面的 $path1 和 $path2 为 HotSecondsServer绝对路径
+		如我的 $path1 是 D:/dowork/dnss/V2/HotSecondsServer
+			-javaagent:D:/dowork/dnss/V2/HotSecondsServer/HotSecondsServer.jar=hotconf=D:/dowork/dnss/V2/HotSecondsServer/hot-seconds-remote.xml
+			
+5、下载Client端
+	去 idea 插件市场下载HotSecondsClient
+	
+	弄好修改HotSecondsClient配置
+	
+	从 hot-seconds-remote.xml 里面获取 secret 填入HotSecondsClient配置，远程IP，本地127.0.0.1，勾上自动热部署，其他默认
+	
+	5.1 添加 mapper xml 热更新
+		5.1.1 添加 路径映射
+				文件类型： .xml
+				本地路径： $rootPath$/pukang-mrqc/pukang-mrqc-service/src/main/resources/mapper
+				远程路径： 随便填点什么
+		5.2.2 解释
+				$rootPath$ 是项目根目录
+				
+6、启动项目
+	增加VM参数后，正常平时怎么启动就怎么启动项目
+	
+7、启动client
+	等项目启动完毕，点击人头，启动HotSecondsClient
+	
+8、测试
+	1、添加 private方法打印点东西，正常
+	2、添加 Controller接口，postman访问正常
+	3、添加 Service 接口，接口实现，正常
+	4、添加 mapper default方法，正常
+	5、添加 mapper 接口方法，添加 xml 实现，失败
+	6、修改 xml sql语句，正常
+	
+	8.1 添加 xml 实现失败原因
+		因为 xml 被缓存起来了
